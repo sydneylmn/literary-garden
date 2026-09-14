@@ -1,0 +1,1775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Literary Garden Companion</title>
+  <style>
+    :root {
+      --bg-deep: #f7f3eb;
+      --bg-card: #fffdf8;
+      --bg-elevated: #f3eee4;
+      --bg-sidebar: #f0e9dc;
+      --border: #e2d6c4;
+      --border-light: #d4c4ae;
+      --accent: #9b7bb8;
+      --accent-soft: #e8dff0;
+      --accent-glow: #7a5a96;
+      --leaf: #6b9b6e;
+      --leaf-soft: #dce8dc;
+      --leaf-glow: #4a7c4e;
+      --moon: #5c4a6e;
+      --text: #3d3429;
+      --text-muted: #6b5e4f;
+      --text-dim: #8a7b6a;
+      --success: #5a9a5e;
+      --warning: #c4923a;
+      --danger: #c46b6b;
+      --info: #8b6fa8;
+      --purple: #9b7bb8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg-deep);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.45;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Decorative corner & edge illustrations */
+    .deco-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .deco-svg {
+      position: absolute;
+      opacity: 0.78;
+    }
+
+    .deco-svg.tl { top: 6px; left: 6px; width: 150px; height: 150px; }
+    .deco-svg.tr { top: 6px; right: 6px; width: 150px; height: 150px; }
+    .deco-svg.bl { display: none; }
+    .deco-svg.br { bottom: 8px; right: 6px; width: 160px; height: 160px; }
+    .deco-svg.ml { top: 36%; left: 2px; width: 88px; height: 140px; opacity: 0.7; }
+    .deco-svg.mr { top: 32%; right: 2px; width: 88px; height: 140px; opacity: 0.7; }
+    .deco-svg.tm { top: 2px; left: 50%; transform: translateX(-50%); width: 220px; height: 70px; opacity: 0.65; }
+    .deco-svg.bm { display: none; }
+    .deco-svg.ml2 { display: none; }
+    .deco-svg.mr2 { top: 58%; right: 8px; width: 64px; height: 90px; opacity: 0.55; }
+
+    .layout, .header {
+      position: relative;
+      z-index: 1;
+    }
+
+    .page-panel { display: none; }
+    .page-panel.active { display: block; }
+
+    input[type="text"], textarea, select {
+      width: 100%;
+      background: #fffdf8;
+      border: 1px solid var(--border-light);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.85rem;
+      font-family: inherit;
+    }
+    textarea { min-height: 72px; resize: vertical; }
+    .form-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+    .form-row > * { flex: 1; min-width: 120px; }
+    .modal-back {
+      display: none; position: fixed; inset: 0; z-index: 50;
+      background: rgba(61,52,41,0.35); align-items: center; justify-content: center; padding: 24px;
+    }
+    .modal-back.open { display: flex; }
+    .modal-card {
+      background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 16px;
+      max-width: 520px; width: 100%; padding: 22px; color: var(--text);
+    }
+    .modal-card h3 { color: var(--accent); margin-bottom: 10px; }
+    .modal-card p, .modal-card li { font-size: 0.88rem; color: var(--text-muted); line-height: 1.45; }
+    .modal-card ol { padding-left: 18px; margin: 10px 0; }
+    .btn-danger {
+      background: transparent;
+      border: 1px solid #e2b8b8;
+      color: #a35a5a;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      cursor: pointer;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: nowrap;
+      padding: 14px 28px;
+      background: linear-gradient(180deg, #f5efe4 0%, #f7f3eb 100%);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo {
+      width: 48px;
+      height: 48px;
+      position: relative;
+    }
+
+    .logo svg { width: 100%; height: 100%; }
+
+    .brand-text h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--moon);
+    }
+
+    .brand-text p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      flex-wrap: nowrap;
+      gap: 10px;
+      flex-shrink: 0;
+      z-index: 60;
+      position: relative;
+      margin-left: auto;
+    }
+    .header-icons {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: nowrap;
+      gap: 6px;
+    }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      min-width: 36px;
+      border-radius: 50%;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      cursor: pointer;
+      flex: 0 0 36px;
+    }
+
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      padding: 6px 12px 6px 6px;
+      border-radius: 999px;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #c4a8d4, #9b7bb8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.8rem;
+      color: white;
+    }
+
+    .user-info { font-size: 0.8rem; }
+    .user-info strong { display: block; color: var(--text); }
+    .user-info span { color: var(--text-muted); font-size: 0.7rem; }
+
+    /* Layout */
+    .layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      min-height: calc(100vh - 70px);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      padding: 20px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .nav-item:hover { background: var(--bg-elevated); color: var(--text); }
+    .nav-item.active {
+      background: linear-gradient(90deg, var(--accent-soft), transparent);
+      color: var(--accent-glow);
+      border-left: 3px solid var(--accent);
+      padding-left: 11px;
+    }
+
+    .nav-item svg { width: 18px; height: 18px; opacity: 0.85; }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 16px 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .help-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 0.8rem;
+    }
+
+    .help-card h4 { color: var(--moon); margin-bottom: 6px; font-size: 0.85rem; }
+    .help-card p { color: var(--text-muted); margin-bottom: 10px; }
+    .btn-sm {
+      display: inline-block;
+      background: var(--accent);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* Main content */
+    .main {
+      padding: 24px 28px 40px;
+      overflow-y: auto;
+    }
+
+    .section-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    /* Top process flow */
+    .process-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      position: relative;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .step-badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+
+    .step-badge.pending { background: var(--bg-elevated); border: 1px solid var(--border-light); color: var(--text-muted); }
+    .step-badge.active-pulse {
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(155, 123, 184, 0.3);
+    }
+    .step-badge.leaf {
+      background: var(--leaf-soft);
+      color: var(--leaf-glow);
+    }
+
+    .card-title { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+
+    .upload-zone {
+      border: 1.5px dashed var(--border-light);
+      border-radius: 10px;
+      padding: 22px 16px;
+      text-align: center;
+      background: rgba(232, 223, 240, 0.45);
+      margin-bottom: 12px;
+    }
+
+    .upload-zone .cloud {
+      font-size: 1.8rem;
+      margin-bottom: 6px;
+      opacity: 0.7;
+    }
+
+    .upload-zone p { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; }
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .btn-leaf {
+      background: var(--leaf-soft);
+      color: var(--leaf-glow);
+      border: 1px solid var(--leaf);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .file-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-elevated);
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      margin-top: 8px;
+    }
+
+    .file-row .check { color: var(--success); }
+
+    .hint {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-top: 10px;
+      display: flex;
+      gap: 6px;
+      align-items: flex-start;
+    }
+
+    /* Questions */
+    .q-list { display: flex; flex-direction: column; gap: 8px; }
+    .q-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(226, 214, 196, 0.7);
+    }
+    .q-row:last-child { border-bottom: none; }
+    .q-row span { color: var(--text-muted); max-width: 70%; }
+    .toggle-group { display: flex; gap: 4px; }
+    .toggle {
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      border: 1px solid var(--border-light);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .toggle.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-glow); }
+
+    .step-meta {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      margin-left: auto;
+    }
+
+    /* AI progress */
+    .ai-status {
+      text-align: center;
+      padding: 10px 0 6px;
+    }
+
+    .brain-ring {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 12px;
+      border-radius: 50%;
+      border: 3px solid var(--accent-soft);
+      border-top-color: var(--accent-glow);
+      animation: spin 1.2s linear infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .ai-status h4 { font-size: 0.9rem; margin-bottom: 8px; }
+    .checklist { text-align: left; font-size: 0.78rem; color: var(--text-muted); }
+    .checklist li {
+      list-style: none;
+      padding: 4px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .checklist .done { color: var(--success); }
+    .checklist .spinning { color: var(--accent-glow); }
+    .time-note { font-size: 0.72rem; color: var(--text-dim); margin-top: 10px; }
+
+    /* Bottom three cards */
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr 1fr;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .pill {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      text-align: center;
+      min-width: 70px;
+    }
+    .pill .num { font-size: 1.25rem; font-weight: 700; display: block; }
+    .pill .lbl { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; }
+    .pill.green .num { color: var(--success); }
+    .pill.amber .num { color: var(--warning); }
+    .pill.red .num { color: var(--danger); }
+    .pill.blue .num { color: var(--info); }
+    .pill.purple .num { color: var(--accent-glow); }
+
+    .readiness {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 12px 0;
+    }
+
+    .score-circle {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: conic-gradient(var(--leaf) 0% 78%, var(--border) 78% 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .score-inner {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .score-inner strong { font-size: 1.1rem; color: var(--leaf); }
+    .score-inner span { font-size: 0.6rem; color: var(--text-muted); }
+
+    .top-items { font-size: 0.78rem; }
+    .top-items li {
+      list-style: none;
+      padding: 3px 0;
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+    }
+    .top-items .count {
+      background: var(--bg-elevated);
+      padding: 1px 7px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      color: var(--text);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border-light);
+      color: var(--text);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+
+    /* Detailed findings table */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .tab {
+      padding: 5px 11px;
+      border-radius: 7px;
+      font-size: 0.72rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .tab.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-glow); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.75rem;
+    }
+    th {
+      text-align: left;
+      color: var(--text-dim);
+      font-weight: 600;
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.68rem;
+      text-transform: uppercase;
+    }
+    td {
+      padding: 8px;
+      border-bottom: 1px solid rgba(226, 214, 196, 0.6);
+      color: var(--text-muted);
+    }
+    td:first-child { color: var(--text); }
+    .badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 5px;
+      font-size: 0.68rem;
+      font-weight: 600;
+    }
+    .badge.warn { background: rgba(196, 146, 58, 0.15); color: var(--warning); }
+    .badge.danger { background: rgba(196, 107, 107, 0.15); color: var(--danger); }
+    .badge.ok { background: rgba(90, 154, 94, 0.15); color: var(--success); }
+    .badge.info { background: rgba(155, 123, 184, 0.15); color: var(--info); }
+    .link { color: var(--accent-glow); cursor: pointer; }
+
+    /* Human review list */
+    .review-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(226, 214, 196, 0.6);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .review-item:last-child { border-bottom: none; }
+    .review-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--bg-elevated);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    .review-item .arrow { margin-left: auto; color: var(--text-dim); }
+
+    /* Strategy / framing section */
+    .strategy-section {
+      margin-top: 8px;
+      background: linear-gradient(180deg, #f5efe4 0%, #f7f3eb 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .strategy-section h2 {
+      font-size: 1.15rem;
+      color: var(--moon);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .strategy-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 18px;
+    }
+
+    .strat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+    }
+
+    .strat-card h3 {
+      font-size: 0.9rem;
+      color: var(--accent-glow);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .strat-card p, .strat-card li {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .strat-card ul { padding-left: 16px; }
+    .strat-card li { margin-bottom: 4px; }
+
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .kpi {
+      background: var(--bg-elevated);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+    }
+    .kpi .val { font-size: 1.1rem; font-weight: 700; color: var(--moon); }
+    .kpi .lbl { font-size: 0.65rem; color: var(--text-dim); margin-top: 2px; }
+
+    /* Footer strip */
+    .footer-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    .footer-item {
+      display: flex;
+      gap: 10px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .footer-item .icon { font-size: 1.1rem; opacity: 0.8; }
+    .footer-item strong { color: var(--text); display: block; margin-bottom: 2px; }
+
+    /* Book / flower accent cards */
+    .reco-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 8px;
+      font-size: 0.78rem;
+    }
+    .reco-card strong { color: var(--moon); display: block; margin-bottom: 2px; }
+    .reco-card .meta { color: var(--text-dim); font-size: 0.7rem; }
+  </style>
+</head>
+<body>
+  <!-- Decorative snapdragon bunches & stacked books around the edges -->
+  <div class="deco-layer" aria-hidden="true">
+    <svg width="0" height="0" style="position:absolute">
+      <defs>
+        <!-- Two-lipped snapdragon floret, facing right -->
+        <g id="sd-r">
+          <path d="M0 3 C2 -2 8 -2 10 2 C11 4 10 6 8 7 C6 9 3 8 1 6 C-1 5 -1 4 0 3Z" fill="currentColor"/>
+          <path d="M3 5 C5 6 8 6 9 4" stroke="#fff6ea" stroke-width="0.7" fill="none" opacity="0.55"/>
+          <circle cx="1.2" cy="4.2" r="1.1" fill="#4a7c4e"/>
+        </g>
+        <!-- Facing left -->
+        <g id="sd-l">
+          <path d="M10 3 C8 -2 2 -2 0 2 C-1 4 0 6 2 7 C4 9 7 8 9 6 C11 5 11 4 10 3Z" fill="currentColor"/>
+          <path d="M7 5 C5 6 2 6 1 4" stroke="#fff6ea" stroke-width="0.7" fill="none" opacity="0.55"/>
+          <circle cx="8.8" cy="4.2" r="1.1" fill="#4a7c4e"/>
+        </g>
+        <!-- Small bud -->
+        <g id="sd-bud">
+          <ellipse cx="3" cy="4" rx="2.2" ry="3.4" fill="currentColor"/>
+          <ellipse cx="3" cy="6.2" rx="1.4" ry="1.2" fill="#4a7c4e"/>
+        </g>
+      </defs>
+    </svg>
+
+    <!-- Top-left: stacked books + snapdragon bunch -->
+    <svg class="deco-svg tl" viewBox="0 0 160 160" fill="none">
+      <rect x="8" y="104" width="62" height="13" rx="2" fill="#9b7bb8" transform="rotate(-6 8 104)"/>
+      <rect x="12" y="90" width="60" height="13" rx="2" fill="#c4a8d4" transform="rotate(-3 12 90)"/>
+      <rect x="14" y="76" width="58" height="12" rx="2" fill="#6b9b6e"/>
+      <rect x="20" y="79" width="46" height="2" fill="#fffdf8"/>
+      <!-- stem bunch -->
+      <path d="M92 154 C90 110 86 80 96 36" stroke="#3f6b42" stroke-width="3.2" fill="none"/>
+      <path d="M80 150 C78 112 72 86 82 48" stroke="#4a7c4e" stroke-width="2.6" fill="none"/>
+      <path d="M104 152 C106 114 110 88 100 50" stroke="#5a9a5e" stroke-width="2.4" fill="none"/>
+      <!-- dense florets on main stem -->
+      <g color="#c45a8c"><use href="#sd-r" x="96" y="34" transform="translate(96,34) scale(1.15)"/></g>
+      <g color="#9b6bb0"><use href="#sd-l" x="84" y="42" transform="translate(84,42) scale(1.1)"/></g>
+      <g color="#d48ab0"><use href="#sd-r" x="98" y="46" transform="translate(98,46) scale(1.12)"/></g>
+      <g color="#b55a90"><use href="#sd-l" x="82" y="52" transform="translate(82,52) scale(1.05)"/></g>
+      <g color="#8a5aa0"><use href="#sd-r" x="97" y="56" transform="translate(97,56) scale(1.08)"/></g>
+      <g color="#c46b9a"><use href="#sd-l" x="83" y="62" transform="translate(83,62) scale(1)"/></g>
+      <g color="#d48ab0"><use href="#sd-r" x="99" y="66" transform="translate(99,66) scale(1.05)"/></g>
+      <g color="#9b7bb8"><use href="#sd-l" x="82" y="72" transform="translate(82,72) scale(0.98)"/></g>
+      <g color="#c45a8c"><use href="#sd-r" x="96" y="76" transform="translate(96,76) scale(1)"/></g>
+      <g color="#e8b4c8"><use href="#sd-bud" x="92" y="24" transform="translate(92,24) scale(1.1)"/></g>
+      <!-- second spike -->
+      <g color="#9b7bb8"><use href="#sd-l" x="70" y="48" transform="translate(70,48) scale(1)"/></g>
+      <g color="#c46b9a"><use href="#sd-r" x="82" y="54" transform="translate(82,54) scale(0.95)"/></g>
+      <g color="#d48ab0"><use href="#sd-l" x="68" y="58" transform="translate(68,58) scale(0.95)"/></g>
+      <g color="#8a5aa0"><use href="#sd-r" x="80" y="66" transform="translate(80,66) scale(0.9)"/></g>
+      <g color="#c45a8c"><use href="#sd-l" x="70" y="70" transform="translate(70,70) scale(0.88)"/></g>
+      <!-- third spike -->
+      <g color="#d48ab0"><use href="#sd-r" x="100" y="50" transform="translate(100,50) scale(0.95)"/></g>
+      <g color="#9b7bb8"><use href="#sd-l" x="90" y="58" transform="translate(90,58) scale(0.9)"/></g>
+      <g color="#c46b9a"><use href="#sd-r" x="102" y="62" transform="translate(102,62) scale(0.92)"/></g>
+      <g color="#b55a90"><use href="#sd-l" x="92" y="70" transform="translate(92,70) scale(0.86)"/></g>
+    </svg>
+
+    <!-- Top-right -->
+    <svg class="deco-svg tr" viewBox="0 0 160 160" fill="none">
+      <rect x="88" y="104" width="62" height="13" rx="2" fill="#6b9b6e" transform="rotate(6 88 104)"/>
+      <rect x="86" y="90" width="60" height="13" rx="2" fill="#9b7bb8" transform="rotate(3 86 90)"/>
+      <rect x="86" y="76" width="58" height="12" rx="2" fill="#c4a8d4"/>
+      <rect x="92" y="79" width="46" height="2" fill="#fffdf8"/>
+      <path d="M68 154 C70 110 74 80 64 36" stroke="#3f6b42" stroke-width="3.2" fill="none"/>
+      <path d="M80 150 C82 112 88 86 78 48" stroke="#4a7c4e" stroke-width="2.6" fill="none"/>
+      <path d="M56 152 C54 114 50 88 60 50" stroke="#5a9a5e" stroke-width="2.4" fill="none"/>
+      <g color="#9b6bb0"><use href="#sd-l" x="52" y="34" transform="translate(52,34) scale(1.15)"/></g>
+      <g color="#c45a8c"><use href="#sd-r" x="64" y="42" transform="translate(64,42) scale(1.1)"/></g>
+      <g color="#d48ab0"><use href="#sd-l" x="50" y="46" transform="translate(50,46) scale(1.12)"/></g>
+      <g color="#8a5aa0"><use href="#sd-r" x="66" y="52" transform="translate(66,52) scale(1.05)"/></g>
+      <g color="#c46b9a"><use href="#sd-l" x="51" y="56" transform="translate(51,56) scale(1.08)"/></g>
+      <g color="#b55a90"><use href="#sd-r" x="65" y="62" transform="translate(65,62) scale(1)"/></g>
+      <g color="#d48ab0"><use href="#sd-l" x="49" y="66" transform="translate(49,66) scale(1.05)"/></g>
+      <g color="#9b7bb8"><use href="#sd-r" x="66" y="72" transform="translate(66,72) scale(0.98)"/></g>
+      <g color="#c45a8c"><use href="#sd-l" x="52" y="76" transform="translate(52,76) scale(1)"/></g>
+      <g color="#e8b4c8"><use href="#sd-bud" x="60" y="24" transform="translate(60,24) scale(1.1)"/></g>
+      <g color="#c46b9a"><use href="#sd-r" x="78" y="48" transform="translate(78,48) scale(1)"/></g>
+      <g color="#9b7bb8"><use href="#sd-l" x="68" y="54" transform="translate(68,54) scale(0.95)"/></g>
+      <g color="#d48ab0"><use href="#sd-r" x="80" y="58" transform="translate(80,58) scale(0.95)"/></g>
+      <g color="#8a5aa0"><use href="#sd-l" x="68" y="66" transform="translate(68,66) scale(0.9)"/></g>
+    </svg>
+
+    <!-- Bottom-left -->
+    <svg class="deco-svg bl" viewBox="0 0 170 170" fill="none">
+      <rect x="6" y="136" width="72" height="14" rx="2" fill="#7a5a96" transform="rotate(-8 6 136)"/>
+      <rect x="10" y="120" width="68" height="14" rx="2" fill="#6b9b6e" transform="rotate(-4 10 120)"/>
+      <rect x="14" y="106" width="64" height="13" rx="2" fill="#c4a8d4"/>
+      <rect x="20" y="109" width="52" height="2" fill="#fffdf8"/>
+      <path d="M108 168 C106 122 100 90 112 42" stroke="#3f6b42" stroke-width="3.2" fill="none"/>
+      <path d="M94 166 C92 124 86 96 96 54" stroke="#4a7c4e" stroke-width="2.6" fill="none"/>
+      <path d="M122 166 C124 126 128 98 116 56" stroke="#5a9a5e" stroke-width="2.4" fill="none"/>
+      <g color="#c45a8c"><use href="#sd-r" x="112" y="40" transform="translate(112,40) scale(1.2)"/></g>
+      <g color="#9b6bb0"><use href="#sd-l" x="100" y="48" transform="translate(100,48) scale(1.12)"/></g>
+      <g color="#d48ab0"><use href="#sd-r" x="114" y="52" transform="translate(114,52) scale(1.14)"/></g>
+      <g color="#b55a90"><use href="#sd-l" x="98" y="58" transform="translate(98,58) scale(1.08)"/></g>
+      <g color="#8a5aa0"><use href="#sd-r" x="113" y="64" transform="translate(113,64) scale(1.1)"/></g>
+      <g color="#c46b9a"><use href="#sd-l" x="99" y="70" transform="translate(99,70) scale(1.02)"/></g>
+      <g color="#d48ab0"><use href="#sd-r" x="115" y="76" transform="translate(115,76) scale(1.06)"/></g>
+      <g color="#9b7bb8"><use href="#sd-l" x="98" y="82" transform="translate(98,82) scale(1)"/></g>
+      <g color="#c45a8c"><use href="#sd-r" x="112" y="88" transform="translate(112,88) scale(1.02)"/></g>
+      <g color="#e8b4c8"><use href="#sd-bud" x="108" y="28" transform="translate(108,28) scale(1.15)"/></g>
+      <g color="#9b7bb8"><use href="#sd-l" x="86" y="54" transform="translate(86,54) scale(1)"/></g>
+      <g color="#c46b9a"><use href="#sd-r" x="96" y="62" transform="translate(96,62) scale(0.96)"/></g>
+      <g color="#d48ab0"><use href="#sd-l" x="84" y="68" transform="translate(84,68) scale(0.94)"/></g>
+      <g color="#8a5aa0"><use href="#sd-r" x="96" y="76" transform="translate(96,76) scale(0.9)"/></g>
+    </svg>
+
+    <!-- Bottom-right -->
+    <svg class="deco-svg br" viewBox="0 0 170 170" fill="none">
+      <rect x="90" y="136" width="72" height="14" rx="2" fill="#6b9b6e" transform="rotate(8 90 136)"/>
+      <rect x="90" y="120" width="68" height="14" rx="2" fill="#9b7bb8" transform="rotate(4 90 120)"/>
+      <rect x="90" y="106" width="64" height="13" rx="2" fill="#c4a8d4"/>
+      <rect x="96" y="109" width="52" height="2" fill="#fffdf8"/>
+      <path d="M62 168 C64 122 70 90 58 42" stroke="#3f6b42" stroke-width="3.2" fill="none"/>
+      <path d="M76 166 C78 124 84 96 74 54" stroke="#4a7c4e" stroke-width="2.6" fill="none"/>
+      <path d="M48 166 C46 126 42 98 54 56" stroke="#5a9a5e" stroke-width="2.4" fill="none"/>
+      <g color="#9b6bb0"><use href="#sd-l" x="46" y="40" transform="translate(46,40) scale(1.2)"/></g>
+      <g color="#c45a8c"><use href="#sd-r" x="58" y="48" transform="translate(58,48) scale(1.12)"/></g>
+      <g color="#d48ab0"><use href="#sd-l" x="44" y="52" transform="translate(44,52) scale(1.14)"/></g>
+      <g color="#8a5aa0"><use href="#sd-r" x="60" y="58" transform="translate(60,58) scale(1.08)"/></g>
+      <g color="#c46b9a"><use href="#sd-l" x="45" y="64" transform="translate(45,64) scale(1.1)"/></g>
+      <g color="#b55a90"><use href="#sd-r" x="59" y="70" transform="translate(59,70) scale(1.02)"/></g>
+      <g color="#d48ab0"><use href="#sd-l" x="43" y="76" transform="translate(43,76) scale(1.06)"/></g>
+      <g color="#9b7bb8"><use href="#sd-r" x="60" y="82" transform="translate(60,82) scale(1)"/></g>
+      <g color="#c45a8c"><use href="#sd-l" x="46" y="88" transform="translate(46,88) scale(1.02)"/></g>
+      <g color="#e8b4c8"><use href="#sd-bud" x="54" y="28" transform="translate(54,28) scale(1.15)"/></g>
+      <g color="#c46b9a"><use href="#sd-r" x="74" y="54" transform="translate(74,54) scale(1)"/></g>
+      <g color="#9b7bb8"><use href="#sd-l" x="64" y="62" transform="translate(64,62) scale(0.96)"/></g>
+      <g color="#d48ab0"><use href="#sd-r" x="76" y="68" transform="translate(76,68) scale(0.94)"/></g>
+    </svg>
+
+    <!-- Mid-left bunch -->
+    <svg class="deco-svg ml" viewBox="0 0 90 150" fill="none">
+      <path d="M32 148 C30 104 24 74 36 28" stroke="#3f6b42" stroke-width="3" fill="none"/>
+      <path d="M48 148 C50 108 54 80 44 36" stroke="#4a7c4e" stroke-width="2.5" fill="none"/>
+      <path d="M20 148 C18 112 16 86 26 46" stroke="#5a9a5e" stroke-width="2.2" fill="none"/>
+      <g color="#c45a8c"><use href="#sd-r" x="36" y="26" transform="translate(36,26) scale(1.15)"/></g>
+      <g color="#9b6bb0"><use href="#sd-l" x="24" y="34" transform="translate(24,34) scale(1.08)"/></g>
+      <g color="#d48ab0"><use href="#sd-r" x="38" y="38" transform="translate(38,38) scale(1.1)"/></g>
+      <g color="#b55a90"><use href="#sd-l" x="22" y="44" transform="translate(22,44) scale(1.02)"/></g>
+      <g color="#8a5aa0"><use href="#sd-r" x="36" y="50" transform="translate(36,50) scale(1.05)"/></g>
+      <g color="#c46b9a"><use href="#sd-l" x="24" y="56" transform="translate(24,56) scale(0.98)"/></g>
+      <g color="#d48ab0"><use href="#sd-r" x="38" y="62" transform="translate(38,62) scale(1)"/></g>
+      <g color="#9b7bb8"><use href="#sd-l" x="22" y="68" transform="translate(22,68) scale(0.94)"/></g>
+      <g color="#c45a8c"><use href="#sd-r" x="36" y="74" transform="translate(36,74) scale(0.96)"/></g>
+      <g color="#e8b4c8"><use href="#sd-bud" x="32" y="16" transform="translate(32,16) scale(1.1)"/></g>
+      <g color="#9b7bb8"><use href="#sd-l" x="42" y="36" transform="translate(42,36) scale(1)"/></g>
+      <g color="#c46b9a"><use href="#sd-r" x="44" y="48" transform="translate(44,48) scale(0.95)"/></g>
+      <g color="#d48ab0"><use href="#sd-l" x="40" y="58" transform="translate(40,58) scale(0.9)"/></g>
+    </svg>
+
+    <!-- Mid-right bunch -->
+    <svg class="deco-svg mr" viewBox="0 0 90 150" fill="none">
+      <path d="M58 148 C60 104 66 74 54 28" stroke="#3f6b42" stroke-width="3" fill="none"/>
+      <path d="M42 148 C40 108 36 80 46 36" stroke="#4a7c4e" stroke-width="2.5" fill="none"/>
+      <path d="M70 148 C72 112 74 86 64 46" stroke="#5a9a5e" stroke-width="2.2" fill="none"/>
+      <g color="#9b6bb0"><use href="#sd-l" x="42" y="26" transform="translate(42,26) scale(1.15)"/></g>
+      <g color="#c45a8c"><use href="#sd-r" x="54" y="34" transform="translate(54,34) scale(1.08)"/></g>
+      <g color="#d48ab0"><use href="#sd-l" x="40" y="38" transform="translate(40,38) scale(1.1)"/></g>
+      <g color="#8a5aa0"><use href="#sd-r" x="56" y="44" transform="translate(56,44) scale(1.02)"/></g>
+      <g color="#c46b9a"><use href="#sd-l" x="42" y="50" transform="translate(42,50) scale(1.05)"/></g>
+      <g color="#b55a90"><use href="#sd-r" x="54" y="56" transform="translate(54,56) scale(0.98)"/></g>
+      <g color="#d48ab0"><use href="#sd-l" x="40" y="62" transform="translate(40,62) scale(1)"/></g>
+      <g color="#9b7bb8"><use href="#sd-r" x="56" y="68" transform="translate(56,68) scale(0.94)"/></g>
+      <g color="#c45a8c"><use href="#sd-l" x="42" y="74" transform="translate(42,74) scale(0.96)"/></g>
+      <g color="#e8b4c8"><use href="#sd-bud" x="50" y="16" transform="translate(50,16) scale(1.1)"/></g>
+      <g color="#c46b9a"><use href="#sd-r" x="36" y="36" transform="translate(36,36) scale(1)"/></g>
+      <g color="#9b7bb8"><use href="#sd-l" x="34" y="48" transform="translate(34,48) scale(0.95)"/></g>
+    </svg>
+
+    <!-- Extra lower-side books -->
+    <svg class="deco-svg ml2" viewBox="0 0 60 90" fill="none">
+      <rect x="6" y="58" width="44" height="10" rx="2" fill="#9b7bb8" transform="rotate(-10 6 58)"/>
+      <rect x="8" y="46" width="42" height="10" rx="2" fill="#6b9b6e" transform="rotate(-5 8 46)"/>
+      <rect x="10" y="34" width="40" height="10" rx="2" fill="#c4a8d4"/>
+    </svg>
+    <svg class="deco-svg mr2" viewBox="0 0 60 90" fill="none">
+      <rect x="10" y="58" width="44" height="10" rx="2" fill="#6b9b6e" transform="rotate(10 10 58)"/>
+      <rect x="10" y="46" width="42" height="10" rx="2" fill="#9b7bb8" transform="rotate(5 10 46)"/>
+      <rect x="10" y="34" width="40" height="10" rx="2" fill="#c4a8d4"/>
+    </svg>
+
+    <!-- Top center: several short snapdragon spikes -->
+    <svg class="deco-svg tm" viewBox="0 0 240 80" fill="none">
+      <path d="M40 78 C40 50 36 34 42 14" stroke="#4a7c4e" stroke-width="2.2" fill="none"/>
+      <path d="M80 78 C80 48 84 32 76 12" stroke="#3f6b42" stroke-width="2.2" fill="none"/>
+      <path d="M120 78 C120 50 116 30 122 10" stroke="#4a7c4e" stroke-width="2.2" fill="none"/>
+      <path d="M160 78 C160 48 164 32 156 12" stroke="#3f6b42" stroke-width="2.2" fill="none"/>
+      <path d="M200 78 C200 50 196 34 202 14" stroke="#4a7c4e" stroke-width="2.2" fill="none"/>
+      <g color="#c45a8c"><use href="#sd-r" x="42" y="12" transform="translate(42,12) scale(0.95)"/></g>
+      <g color="#9b7bb8"><use href="#sd-l" x="32" y="20" transform="translate(32,20) scale(0.9)"/></g>
+      <g color="#d48ab0"><use href="#sd-r" x="42" y="28" transform="translate(42,28) scale(0.88)"/></g>
+      <g color="#9b6bb0"><use href="#sd-l" x="64" y="10" transform="translate(64,10) scale(0.95)"/></g>
+      <g color="#c46b9a"><use href="#sd-r" x="76" y="18" transform="translate(76,18) scale(0.9)"/></g>
+      <g color="#d48ab0"><use href="#sd-l" x="64" y="26" transform="translate(64,26) scale(0.88)"/></g>
+      <g color="#c45a8c"><use href="#sd-r" x="122" y="8" transform="translate(122,8) scale(1)"/></g>
+      <g color="#9b7bb8"><use href="#sd-l" x="110" y="16" transform="translate(110,16) scale(0.92)"/></g>
+      <g color="#d48ab0"><use href="#sd-r" x="122" y="24" transform="translate(122,24) scale(0.9)"/></g>
+      <g color="#8a5aa0"><use href="#sd-l" x="144" y="10" transform="translate(144,10) scale(0.95)"/></g>
+      <g color="#c46b9a"><use href="#sd-r" x="156" y="18" transform="translate(156,18) scale(0.9)"/></g>
+      <g color="#b55a90"><use href="#sd-l" x="144" y="26" transform="translate(144,26) scale(0.88)"/></g>
+      <g color="#d48ab0"><use href="#sd-r" x="202" y="12" transform="translate(202,12) scale(0.95)"/></g>
+      <g color="#9b7bb8"><use href="#sd-l" x="190" y="20" transform="translate(190,20) scale(0.9)"/></g>
+      <g color="#c45a8c"><use href="#sd-r" x="202" y="28" transform="translate(202,28) scale(0.88)"/></g>
+    </svg>
+
+    <!-- Bottom center books + snapdragon bunches -->
+    <svg class="deco-svg bm" viewBox="0 0 260 80" fill="none">
+      <rect x="86" y="52" width="48" height="11" rx="2" fill="#9b7bb8"/>
+      <rect x="114" y="40" width="48" height="11" rx="2" fill="#6b9b6e"/>
+      <rect x="142" y="52" width="48" height="11" rx="2" fill="#c4a8d4"/>
+      <path d="M36 78 C36 52 32 34 40 12" stroke="#4a7c4e" stroke-width="2.2" fill="none"/>
+      <path d="M52 78 C52 54 56 36 48 14" stroke="#3f6b42" stroke-width="2" fill="none"/>
+      <path d="M208 78 C208 52 212 34 204 12" stroke="#4a7c4e" stroke-width="2.2" fill="none"/>
+      <path d="M224 78 C224 54 220 36 228 14" stroke="#3f6b42" stroke-width="2" fill="none"/>
+      <g color="#c45a8c"><use href="#sd-r" x="40" y="10" transform="translate(40,10) scale(1)"/></g>
+      <g color="#9b7bb8"><use href="#sd-l" x="28" y="18" transform="translate(28,18) scale(0.92)"/></g>
+      <g color="#d48ab0"><use href="#sd-r" x="40" y="26" transform="translate(40,26) scale(0.9)"/></g>
+      <g color="#8a5aa0"><use href="#sd-l" x="36" y="12" transform="translate(36,12) scale(0.88)"/></g>
+      <g color="#c46b9a"><use href="#sd-r" x="48" y="20" transform="translate(48,20) scale(0.9)"/></g>
+      <g color="#9b6bb0"><use href="#sd-l" x="192" y="10" transform="translate(192,10) scale(1)"/></g>
+      <g color="#c45a8c"><use href="#sd-r" x="204" y="18" transform="translate(204,18) scale(0.92)"/></g>
+      <g color="#d48ab0"><use href="#sd-l" x="192" y="26" transform="translate(192,26) scale(0.9)"/></g>
+      <g color="#c46b9a"><use href="#sd-r" x="228" y="12" transform="translate(228,12) scale(0.95)"/></g>
+      <g color="#9b7bb8"><use href="#sd-l" x="216" y="20" transform="translate(216,20) scale(0.88)"/></g>
+    </svg>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="brand">
+      <div class="logo">
+        <!-- Stacked books + snapdragon bunch logo -->
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="6" y="44" width="34" height="8" rx="1.5" fill="#7a5a96" transform="rotate(-8 6 44)"/>
+          <rect x="8" y="34" width="32" height="8" rx="1.5" fill="#6b9b6e" transform="rotate(-3 8 34)"/>
+          <rect x="10" y="24" width="30" height="8" rx="1.5" fill="#c4a8d4"/>
+          <rect x="14" y="26" width="22" height="1.6" fill="#fffdf8"/>
+          <path d="M44 58 C44 40 42 28 46 10" stroke="#3f6b42" stroke-width="2" fill="none"/>
+          <path d="M50 56 C51 40 54 30 48 16" stroke="#4a7c4e" stroke-width="1.6" fill="none"/>
+          <path d="M46 10 C48 7 52 7 54 11 C55 13 54 15 52 16 C50 18 47 17 45 15 C44 14 45 12 46 10Z" fill="#c45a8c"/>
+          <path d="M40 16 C42 13 46 13 47 17 C48 19 46 21 44 21 C42 23 40 21 39 19 C38 18 39 17 40 16Z" fill="#9b6bb0"/>
+          <path d="M48 18 C50 15 54 16 55 20 C56 22 54 24 52 24 C50 26 47 24 46 22 C45 21 47 19 48 18Z" fill="#d48ab0"/>
+          <path d="M41 24 C43 21 47 22 48 25 C49 27 47 29 45 29 C43 31 41 29 40 27 C39 26 40 25 41 24Z" fill="#8a5aa0"/>
+          <path d="M49 26 C51 23 54 24 55 27 C56 29 54 31 52 31 C50 32 48 31 47 29 C46 28 48 27 49 26Z" fill="#c46b9a"/>
+          <ellipse cx="46" cy="7" rx="2" ry="3" fill="#e8b4c8"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>Literary Garden Companion</h1>
+        <p>Where plants meet pages · Care, reading & quiet insight</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-icons">
+        <div class="icon-btn" id="help-btn" title="Help" role="button" onclick="document.getElementById('help-modal').classList.add('open')">?</div>
+        <div class="icon-btn" id="notify-btn" title="Garden notes" role="button" onclick="(window.lgcNotify?window.lgcNotify():alert('Type a plant problem and press Grow companion note.'))">🌿</div>
+      </div>
+      <div class="user-chip">
+        <div class="avatar" id="user-avatar">RG</div>
+        <div class="user-info">
+          <input id="user-name" type="text" value="Reader-Gardener" title="Click to change your name" style="font-weight:700;border:none;background:transparent;color:var(--text);padding:0;width:140px;font-size:0.82rem">
+          <span>Your Companion</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="nav-item active" data-page="desk">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Garden Desk
+      </div>
+      <div class="nav-item" data-page="plants">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+        My Plants
+      </div>
+      <div class="nav-item" data-page="reading">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Reading List
+      </div>
+      <div class="nav-item" data-page="seasons">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        Seasons
+      </div>
+      <div class="nav-item" data-page="journal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Journal
+      </div>
+      <div class="nav-item" data-page="insights">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        Insights
+      </div>
+      <div class="nav-item" data-page="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Settings
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="help-card">
+          <h4>📖 Quiet Hours</h4>
+          <p>Need a gentler pace? Switch to Literary Mode for softer metaphors and longer reading suggestions.</p>
+          <button class="btn-sm" type="button" id="mode-btn">Switch Mode</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <div id="page-desk" class="page-panel active">
+      <div class="section-label">Your companion session</div>
+
+      <!-- Top 3 process cards -->
+      <div class="process-grid">
+        <!-- 1 Share situation -->
+        <div class="card">
+          <div class="card-header">
+            <div class="step-badge">1</div>
+            <div class="card-title">Share What’s Growing</div>
+          </div>
+          <div class="upload-zone">
+            <div class="cloud">🌱</div>
+            <p>Describe a plant, a garden problem, a season, or a book you’re reading</p>
+            <textarea id="note-input" placeholder="Tomato seedlings · yellowing leaves · late spring"></textarea>
+            <div class="form-row">
+              <button class="btn-primary" type="button" id="save-note-btn">Save this note</button>
+            </div>
+          </div>
+          <div class="file-row" id="latest-note-row">
+            <span class="check">✓</span>
+            <span id="latest-note-text">Tomato seedlings · yellowing leaves · late spring</span>
+          </div>
+          <div class="hint">
+            <span>ⓘ</span>
+            <span>We’ll match care advice with a book that fits the mood. Default is fantasy + a little rom-com; ask for any genre you like.</span>
+          </div>
+        </div>
+
+        <!-- 2 Guided questions -->
+        <div class="card">
+          <div class="card-header">
+            <div class="step-badge">2</div>
+            <div class="card-title">Gentle Context</div>
+            <span class="step-meta">Step 2 of 6</span>
+          </div>
+          <div class="q-list">
+            <div class="q-row">
+              <span>Indoor, outdoor, or mixed?</span>
+              <div class="toggle-group">
+                <button class="toggle">Indoor</button>
+                <button class="toggle on">Outdoor</button>
+              </div>
+            </div>
+            <div class="q-row">
+              <span>Prefer practical tips or story notes?</span>
+              <div class="toggle-group">
+                <button class="toggle">Practical</button>
+                <button class="toggle on">Both</button>
+              </div>
+            </div>
+            <div class="q-row">
+              <span>Looking for a book recommendation?</span>
+              <div class="toggle-group">
+                <button class="toggle on">Yes</button>
+                <button class="toggle">No</button>
+              </div>
+            </div>
+            <div class="q-row" style="align-items:flex-start">
+              <span>Genres (pick any combination)</span>
+              <div id="genre-boxes" style="display:flex;flex-wrap:wrap;gap:6px;max-width:62%;justify-content:flex-end">
+                <label style="font-size:0.75rem"><input type="checkbox" value="fantasy"> fantasy</label>
+                <label style="font-size:0.75rem"><input type="checkbox" value="rom-com"> rom-com</label>
+                <label style="font-size:0.75rem"><input type="checkbox" value="romance"> romance</label>
+                <label style="font-size:0.75rem"><input type="checkbox" value="mystery"> mystery</label>
+                <label style="font-size:0.75rem"><input type="checkbox" value="thriller"> thriller</label>
+                <label style="font-size:0.75rem"><input type="checkbox" value="horror"> horror</label>
+                <label style="font-size:0.75rem"><input type="checkbox" value="sci-fi"> sci-fi</label>
+                <label style="font-size:0.75rem"><input type="checkbox" value="historical"> historical</label>
+                <label style="font-size:0.75rem"><input type="checkbox" value="literary"> literary</label>
+                <label style="font-size:0.75rem"><input type="checkbox" value="memoir"> memoir</label>
+                <label style="font-size:0.75rem"><input type="checkbox" value="kids"> kids</label>
+              </div>
+            </div>
+            <div class="q-row">
+              <span>Want a short journal prompt?</span>
+              <div class="toggle-group">
+                <button class="toggle">Yes</button>
+                <button class="toggle on">Later</button>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:12px;text-align:right">
+            <button class="btn-primary" type="button" id="apply-prefs-btn">Save choices</button>
+          </div>
+        </div>
+
+        <!-- 3 AI Companion -->
+        <div class="card">
+          <div class="card-header">
+            <div class="step-badge" id="think-badge">3</div>
+            <div class="card-title">Companion Thinking</div>
+          </div>
+          <div class="ai-status">
+            <div class="brain-ring">📚</div>
+            <h4 id="think-title">Ready when you are</h4>
+            <ul class="checklist" id="think-list">
+              <li><span>○</span> Waiting for a garden note</li>
+              <li><span>○</span> Care advice comes first</li>
+              <li><span>○</span> Then a fiction book in your genre</li>
+            </ul>
+            <p class="time-note" id="think-note">Type a problem, pick a genre, then press Grow companion note.</p>
+            <button class="btn-primary" type="button" id="grow-btn" style="margin-top:10px;width:100%">Grow companion note</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom 3 result cards -->
+      <div class="bottom-grid">
+        <!-- 4 Harmony / Readiness -->
+        <div class="card">
+          <div class="card-header">
+            <div class="step-badge leaf">4</div>
+            <div class="card-title">Garden–Book Harmony</div>
+          </div>
+          <div class="stat-pills">
+            <div class="pill green"><span class="num">3</span><span class="lbl">Care Tips</span></div>
+            <div class="pill purple"><span class="num">2</span><span class="lbl">Books</span></div>
+            <div class="pill blue"><span class="num">1</span><span class="lbl">Passage</span></div>
+            <div class="pill amber"><span class="num">1</span><span class="lbl">Prompt</span></div>
+          </div>
+          <div class="readiness">
+            <div class="score-circle">
+              <div class="score-inner">
+                <strong id="harmony-score">—</strong>
+                <span>Match</span>
+              </div>
+            </div>
+            <div>
+              <p style="font-size:0.85rem;margin-bottom:4px">Alignment of care + reading</p>
+              <p style="font-size:0.75rem;color:var(--text-muted)" id="harmony-blurb">Enter a plant problem and press Grow companion note.</p>
+            </div>
+          </div>
+          <ul class="top-items" id="harmony-list"></ul>
+          <button class="btn-outline" type="button" id="open-note-btn">Open Full Companion Note</button>
+        </div>
+
+        <!-- 5 Detailed findings -->
+        <div class="card">
+          <div class="card-header">
+            <div class="step-badge">5</div>
+            <div class="card-title">Care & Literary Findings</div>
+          </div>
+          <div class="tabs" id="findings-tabs">
+            <span class="tab active" data-tab="all">All</span>
+            <span class="tab" data-tab="care">Care</span>
+            <span class="tab" data-tab="books">Books</span>
+            <span class="tab" data-tab="mood">Mood</span>
+            <span class="tab" data-tab="journal">Journal</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Insight</th>
+                <th>Type</th>
+                <th>Source</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="findings-body">
+              <tr><td colspan="4">Press Grow companion note to fill this table.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 6 Next actions -->
+        <div class="card">
+          <div class="card-header">
+            <div class="step-badge">6</div>
+            <div class="card-title">Things to Do Next</div>
+          </div>
+          <div id="next-list"></div>
+          <div style="margin-top:14px">
+            <button class="btn-primary" type="button" id="download-note-btn" style="width:100%">Save Companion Note ↓</button>
+          </div>
+        </div>
+      </div>
+
+      <p style="font-size:0.75rem;color:var(--text-dim);margin-top:8px">
+        Garden advice is general. For a serious plant problem, check with a local nursery.
+      </p>
+      </div>
+
+      <div id="page-plants" class="page-panel">
+        <div class="section-label">My Plants</div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:12px">Add a plant</div>
+          <input id="plant-name" type="text" placeholder="Plant name">
+          <input id="plant-note" type="text" placeholder="Note (yellowing leaves, full sun…)" style="margin-top:8px">
+          <div class="form-row">
+            <button class="btn-primary" type="button" id="add-plant-btn">Add plant</button>
+          </div>
+        </div>
+        <div class="card" style="margin-top:12px">
+          <div class="card-title" style="margin-bottom:12px">What’s in the garden</div>
+          <div id="plant-list"></div>
+        </div>
+      </div>
+
+      <div id="page-reading" class="page-panel">
+        <div class="section-label">Reading List</div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:12px">Books for this garden mood</div>
+          <div class="review-item"><div class="review-icon">📖</div><div><strong>Howl’s Moving Castle</strong><div style="font-size:0.72rem;color:var(--text-dim)">Fantasy + romance · default pick</div></div></div>
+          <div class="review-item"><div class="review-icon">📖</div><div><strong>The Spellshop</strong><div style="font-size:0.72rem;color:var(--text-dim)">Cozy romantasy</div></div></div>
+          <div class="review-item"><div class="review-icon">📖</div><div><strong>Emily Wilde’s Encyclopaedia of Faeries</strong><div style="font-size:0.72rem;color:var(--text-dim)">Fantasy with a dry, bookish spark</div></div></div>
+          <p style="font-size:0.78rem;color:var(--text-muted);margin-top:12px">Current genre: <strong id="reading-genre-label">fantasy + rom-com</strong></p>
+          <div class="form-row">
+            <input id="book-title" type="text" placeholder="Add a book title">
+            <button class="btn-primary" type="button" id="add-book-btn">Add book</button>
+          </div>
+          <div id="book-list" style="margin-top:10px"></div>
+        </div>
+      </div>
+
+      <div id="page-seasons" class="page-panel">
+        <div class="section-label">Seasons</div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:12px">Late spring</div>
+          <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:10px">Seedlings are fussy, days are longer, and stories about recovery fit well.</p>
+          <ul class="top-items">
+            <li><span>Water in the morning</span><span class="count">now</span></li>
+            <li><span>Harden off indoor starts</span><span class="count">now</span></li>
+            <li><span>Read a chapter while soil drains</span><span class="count">today</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div id="page-journal" class="page-panel">
+        <div class="section-label">Journal</div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:12px">Today’s prompt</div>
+          <p style="font-size:0.9rem;margin-bottom:12px">What in the garden is still learning to green — and what story-character energy does it have today?</p>
+          <textarea id="journal-input" placeholder="Write a few lines…"></textarea>
+          <div class="form-row">
+            <button class="btn-primary" type="button" id="save-journal-btn">Save journal entry</button>
+          </div>
+          <div id="journal-list" style="margin-top:12px"></div>
+        </div>
+      </div>
+
+      <div id="page-insights" class="page-panel">
+        <div class="section-label">Insights</div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:12px">This session</div>
+          <div class="stat-pills">
+            <div class="pill green"><span class="num">3</span><span class="lbl">Care tips</span></div>
+            <div class="pill purple"><span class="num">2</span><span class="lbl">Books</span></div>
+            <div class="pill amber"><span class="num">1</span><span class="lbl">Prompt</span></div>
+          </div>
+          <p style="font-size:0.85rem;color:var(--text-muted)">Yellowing tomatoes + late spring often pair with cozy fantasy and a little rom-com, unless you pick another genre.</p>
+        </div>
+      </div>
+
+      <div id="page-settings" class="page-panel">
+        <div class="section-label">Settings</div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:12px">Companion preferences</div>
+          <div class="q-row"><span>Default genre</span><span id="settings-genre" style="color:var(--accent-glow)">fantasy + rom-com</span></div>
+          <p style="font-size:0.78rem;color:var(--text-muted);margin-top:12px">Change genre on the Garden Desk. Plants, books, and notes save in this browser.</p>
+          <button class="btn-outline" type="button" id="reset-btn">Clear saved data</button>
+        </div>
+      </div>
+    </main>
+  </div>
+  <div class="modal-back" id="help-modal">
+    <div class="modal-card">
+      <h3>How to use the companion</h3>
+      <ol>
+        <li>Type a real plant problem (yellow leaf, black spot, wilt).</li>
+        <li>Pick indoor/outdoor, care vs story, and any genre.</li>
+        <li>Click <strong>Grow companion note</strong>.</li>
+        <li>Read care first, then the fiction pick — not a plant manual.</li>
+        <li>Use My Plants, Reading List, and Journal to add your own items.</li>
+      </ol>
+      <p>The ? button opens this help. The leaf shows a short status. Switch Mode only changes the tone of the next note.</p>
+      <button class="btn-primary" type="button" id="help-close" style="margin-top:12px">Got it</button>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var KEY = "lgc-data-v1";
+      var state = {
+        note: "Tomato seedlings · yellowing leaves · late spring",
+        setting: "Outdoor",
+        style: "Both",
+        wantBook: "Yes",
+        promptWhen: "Later",
+        genres: ["fantasy"],
+        genre: "fantasy",
+        genreOther: "",
+        plants: [
+          { name: "Tomato seedlings", note: "Yellowing lower leaves · check soil moisture" },
+          { name: "Snapdragons", note: "Full sun · pinch spent spikes" },
+          { name: "Basil", note: "Keep soil evenly moist · harvest often" }
+        ],
+        books: [
+          { title: "Howl’s Moving Castle", note: "Fantasy + romance · default pick" },
+          { title: "The Spellshop", note: "Cozy romantasy" },
+          { title: "Emily Wilde’s Encyclopaedia of Faeries", note: "Fantasy with a dry, bookish spark" }
+        ],
+        journal: [],
+        userName: "Reader-Gardener"
+      };
+      try {
+        var saved = localStorage.getItem(KEY);
+        if (saved) state = JSON.parse(saved);
+      } catch (e) {}
+
+      function save() {
+        localStorage.setItem(KEY, JSON.stringify(state));
+        render();
+      }
+
+      function selectedGenres() {
+        var boxes = document.querySelectorAll("#genre-boxes input[type=checkbox]");
+        var picked = [];
+        boxes.forEach(function (b) { if (b.checked) picked.push(b.value); });
+        if (picked.length) state.genres = picked;
+        if (!state.genres || !state.genres.length) state.genres = ["fantasy"];
+        return state.genres;
+      }
+      function currentGenre() {
+        return selectedGenres().join(" + ");
+      }
+
+      var BOOKS = {
+        "fantasy + rom-com": [
+          { title: "Howl’s Moving Castle", author: "Diana Wynne Jones", why: "Recovery, stubborn hope, a chaotic love interest" },
+          { title: "The Spellshop", author: "Sarah Beth Durst", why: "Cozy romantasy if you want more flirt than soot" }
+        ],
+        fantasy: [
+          { title: "Emily Wilde’s Encyclopaedia of Faeries", author: "Heather Fawcett", why: "Bookish, dry, and a little feral" },
+          { title: "Howl’s Moving Castle", author: "Diana Wynne Jones", why: "Magic that refuses to sit still" }
+        ],
+        "rom-com": [
+          { title: "The Spanish Love Deception", author: "Elena Armas", why: "Enemies-to-lovers heat with a travel spark" },
+          { title: "Beach Read", author: "Emily Henry", why: "Two writers, one porch, a lot of weather" }
+        ],
+        romance: [
+          { title: "The Kiss Quotient", author: "Helen Hoang", why: "Tender, specific, and not a gardening manual" },
+          { title: "You Deserve Each Other", author: "Sarah Hogle", why: "Messy couple energy while something recovers" }
+        ],
+        mystery: [
+          { title: "The Thursday Murder Club", author: "Richard Osman", why: "Curious neighbors solving what looks wrong" },
+          { title: "The Maidens", author: "Alex Michaelides", why: "A dark spot you should not ignore" }
+        ],
+        thriller: [
+          { title: "The Guest List", author: "Lucy Foley", why: "Something is off and everyone can see it" },
+          { title: "The Last Thing He Told Me", author: "Laura Dave", why: "A small wrong detail that will not stay small" }
+        ],
+        horror: [
+          { title: "Mexican Gothic", author: "Silvia Moreno-Garcia", why: "A house — and a plant problem — that will not behave" },
+          { title: "The Only Good Indians", author: "Stephen Graham Jones", why: "What you left in the field comes back" }
+        ],
+        "sci-fi": [
+          { title: "Project Hail Mary", author: "Andy Weir", why: "A problem you solve one test at a time" },
+          { title: "A Psalm for the Wild-Built", author: "Becky Chambers", why: "A tea-robot and a tired gardener of a person" }
+        ],
+        historical: [
+          { title: "The Nightingale", author: "Kristin Hannah", why: "Quiet endurance through a hard season" },
+          { title: "Hamnet", author: "Maggie O’Farrell", why: "A household tending what it cannot save easily" }
+        ],
+        literary: [
+          { title: "The Overstory", author: "Richard Powers", why: "Trees as characters — still a novel, not a how-to" },
+          { title: "Gilead", author: "Marilynne Robinson", why: "Patience written as a letter" }
+        ],
+        memoir: [
+          { title: "Educated", author: "Tara Westover", why: "Learning to trust your own eyes" },
+          { title: "H is for Hawk", author: "Helen Macdonald", why: "Grief, a wild thing, and daily care" }
+        ],
+        kids: [
+          { title: "The Girl Who Drank the Moon", author: "Kelly Barnhill", why: "A swamp, a star, and stubborn growing" },
+          { title: "The Tale of Despereaux", author: "Kate DiCamillo", why: "Small and brave in a dark pantry" }
+        ]
+      };
+
+      function booksFor() {
+        var picked = selectedGenres();
+        var out = [];
+        var seen = {};
+        picked.forEach(function (g) {
+          var list = BOOKS[g] || BOOKS.fantasy;
+          list.forEach(function (b) {
+            if (!seen[b.title]) { seen[b.title] = 1; out.push(b); }
+          });
+        });
+        return out.slice(0, 3);
+      }
+
+      function diagnose(note) {
+        var n = (note || "").toLowerCase();
+        if (n.indexOf("black spot") !== -1 || n.indexOf("blight") !== -1) {
+          return {
+            issue: "Black spots on leaves",
+            tip: "Common fungal spot / possible blight",
+            care: [
+              "Pick off spotted leaves and throw them away — do not compost.",
+              "Water at the soil, not on the leaves, and give the plant more air.",
+              "If spots are spreading fast on tomatoes, isolate that plant and check a nursery photo of early blight."
+            ],
+            next: "This evening, remove every spotted leaf you can reach and water only at the base."
+          };
+        }
+        if (n.indexOf("yellow") !== -1) {
+          return {
+            issue: "Yellowing leaves",
+            tip: "Often water or nitrogen",
+            care: [
+              "Push a finger 2 inches into the soil. If wet, wait. If dry, water slowly at the base.",
+              "Yellow lower leaves on tomatoes often mean extra water or hungry soil — fix moisture first.",
+              "Then offer a mild feed (compost tea or diluted fish emulsion) if the soil is not soggy."
+            ],
+            next: "Before dark, feel the soil 2 inches down and only water if it is dry."
+          };
+        }
+        if (n.indexOf("wilt") !== -1) {
+          return {
+            issue: "Wilting",
+            tip: "Heat, thirst, or root stress",
+            care: [
+              "Check soil moisture first. Wilt at noon that recovers at dusk is often heat, not disaster.",
+              "Water deeply at the base in the morning.",
+              "If it stays wilted at dawn, look at roots and pests before adding fertilizer."
+            ],
+            next: "Look at the plant at dusk. If it has perked up, it needed shade and water, not a new product."
+          };
+        }
+        return {
+          issue: note || "Garden note",
+          tip: "General care",
+          care: [
+            "Name the plant and the symptom (yellow, spot, wilt) next time if you can.",
+            "Check soil 2 inches down before you water.",
+            "Give it sun that matches the plant and do not crowd the pot."
+          ],
+          next: "Write one sentence about what the leaves look like today, then check the soil once."
+        };
+      }
+
+      function setThinking(mode) {
+        var title = document.getElementById("think-title");
+        var list = document.getElementById("think-list");
+        var note = document.getElementById("think-note");
+        var badge = document.getElementById("think-badge");
+        if (mode === "busy") {
+          if (badge) badge.classList.add("active-pulse");
+          if (title) title.textContent = "Weaving plant & page…";
+          if (list) list.innerHTML = "<li><span class='spinning'>⟳</span> Reading your garden note</li>";
+          if (note) note.textContent = "A few seconds.";
+        } else if (mode === "done") {
+          if (badge) badge.classList.remove("active-pulse");
+          if (title) title.textContent = "Companion note ready";
+          if (list) list.innerHTML = "<li><span class='done'>✓</span> Care first</li><li><span class='done'>✓</span> Fiction match in your genre</li><li><span class='done'>✓</span> One next step for today</li>";
+          if (note) note.textContent = "Try another plant problem to test it again.";
+        }
+      }
+
+      function grow() {
+        var typed = (document.getElementById("note-input") && document.getElementById("note-input").value.trim()) || "";
+        if (typed) state.note = typed;
+        if (!state.note) {
+          alert("Type a plant problem first — for example: my tomatoes have a black spot or yellow leaf.");
+          return;
+        }
+        setThinking("busy");
+        setTimeout(function () {
+          var d = diagnose(state.note);
+          var genre = currentGenre();
+          var books = booksFor(genre);
+          state.last = { d: d, books: books, genre: genre };
+          if (document.getElementById("harmony-score")) document.getElementById("harmony-score").textContent = "82%";
+          if (document.getElementById("harmony-blurb")) {
+            document.getElementById("harmony-blurb").textContent =
+              d.issue + ". Care first. Reading mood: " + genre + " fiction — not a plant manual.";
+          }
+          var hl = document.getElementById("harmony-list");
+          if (hl) {
+            hl.innerHTML = "<li><span>● " + d.care[0] + "</span><span class='count'>1</span></li>" +
+              "<li><span>● Book: " + books[0].title + "</span><span class='count'>1</span></li>" +
+              (state.wantBook !== "No" && books[1] ? "<li><span>● Book: " + books[1].title + "</span><span class='count'>1</span></li>" : "");
+          }
+          var fb = document.getElementById("findings-body");
+          if (fb) {
+            var rows = [
+              [d.issue, d.tip, "Garden note", "care"],
+              [books[0].title + " (" + books[0].author + ")", genre + " fiction", "Book match", "books"]
+            ];
+            if (state.wantBook !== "No" && books[1]) rows.push([books[1].title + " (" + books[1].author + ")", genre + " fiction", "Book match", "books"]);
+            rows.push([genre + " mood — fiction, not a manual", "Literary mood", "Companion", "mood"]);
+            rows.push(["Journal (under 100 words): What still looks unwell, and which character would stay with it?", "Prompt", "Companion", "journal"]);
+            fb.innerHTML = rows.map(function (r) {
+              return "<tr data-kind='" + r[3] + "'><td>" + r[0] + "</td><td><span class='badge ok'>" + r[1] + "</span></td><td>" + r[2] + "</td><td></td></tr>";
+            }).join("");
+          }
+          var nl = document.getElementById("next-list");
+          if (nl) {
+            var html = "<div class='review-item'><div class='review-icon'>💧</div><div><strong>" + d.next + "</strong><div style='font-size:0.72rem;color:var(--text-dim)'>One small step for today</div></div></div>";
+            if (state.wantBook !== "No") {
+              html += "<div class='review-item'><div class='review-icon'>📖</div><div><strong>Start " + books[0].title + "</strong><div style='font-size:0.72rem;color:var(--text-dim)'>" + books[0].why + "</div></div></div>";
+            }
+            nl.innerHTML = html;
+          }
+          if (!state.plants.some(function (p) { return (state.note || "").toLowerCase().indexOf(p.name.toLowerCase()) !== -1; })) {
+            state.plants.unshift({ name: state.note.split(/[·,.]/)[0], note: d.issue });
+          }
+          if (state.wantBook !== "No") {
+            books.forEach(function (b) {
+              if (!state.books.some(function (x) { return x.title === b.title; })) {
+                state.books.unshift({ title: b.title, note: genre + " · " + b.why });
+              }
+            });
+          }
+          save();
+          setThinking("done");
+          var desk = document.getElementById("page-desk");
+          if (desk) show("desk");
+        }, 700);
+      }
+
+      var items = document.querySelectorAll(".nav-item[data-page]");
+      var pages = document.querySelectorAll(".page-panel");
+      function show(id) {
+        items.forEach(function (el) {
+          el.classList.toggle("active", el.getAttribute("data-page") === id);
+        });
+        pages.forEach(function (el) {
+          el.classList.toggle("active", el.id === "page-" + id);
+        });
+      }
+      items.forEach(function (el) {
+        el.addEventListener("click", function () {
+          show(el.getAttribute("data-page"));
+          window.scrollTo(0, 0);
+        });
+      });
+
+      document.querySelectorAll(".toggle-group").forEach(function (group) {
+        group.querySelectorAll(".toggle").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            group.querySelectorAll(".toggle").forEach(function (b) { b.classList.remove("on"); });
+            btn.classList.add("on");
+            var label = (group.previousElementSibling && group.previousElementSibling.textContent) || "";
+            var val = btn.textContent.trim();
+            if (label.indexOf("Indoor") !== -1) state.setting = val;
+            if (label.indexOf("practical") !== -1) state.style = val;
+            if (label.indexOf("book recommendation") !== -1) state.wantBook = val;
+            if (label.indexOf("journal prompt") !== -1) state.promptWhen = val;
+            save();
+          });
+        });
+      });
+
+      function bind(id, fn) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener("click", fn);
+      }
+
+      bind("save-note-btn", function () {
+        var t = document.getElementById("note-input").value.trim();
+        if (!t) return;
+        state.note = t;
+        save();
+        grow();
+      });
+      bind("grow-btn", grow);
+      bind("apply-prefs-btn", function () { save(); grow(); });
+      bind("open-note-btn", function () {
+        show("journal");
+      });
+      bind("download-note-btn", function () {
+        var last = state.last;
+        var text = "Literary Garden Companion note\n\n" + state.note + "\nGenre: " + currentGenre() + "\n";
+        if (last) {
+          text += "\nCare:\n- " + last.d.care.join("\n- ");
+          text += "\n\nBooks:\n- " + last.books.map(function (b) { return b.title + " — " + b.why; }).join("\n- ");
+          text += "\n\nToday: " + last.d.next;
+        }
+        var blob = new Blob([text], { type: "text/plain" });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "companion-note.txt";
+        a.click();
+      });
+
+      document.querySelectorAll("#genre-boxes input[type=checkbox]").forEach(function (box) {
+        box.addEventListener("change", function () {
+          selectedGenres();
+          save();
+        });
+      });
+      window.lgcNotify = function () {
+        alert(state.last ? ("Last note: " + state.note + "\nGenres: " + currentGenre()) : "No companion note yet. Type a plant problem and press Grow companion note.");
+      };
+      bind("apply-prefs-btn", function () { save(); grow(); });
+
+      bind("add-plant-btn", function () {
+        var name = document.getElementById("plant-name").value.trim();
+        var note = document.getElementById("plant-note").value.trim() || "Added from My Plants";
+        if (!name) return;
+        state.plants.push({ name: name, note: note });
+        document.getElementById("plant-name").value = "";
+        document.getElementById("plant-note").value = "";
+        save();
+      });
+
+      bind("add-book-btn", function () {
+        var title = document.getElementById("book-title").value.trim();
+        if (!title) return;
+        state.books.push({ title: title, note: currentGenre() });
+        document.getElementById("book-title").value = "";
+        save();
+      });
+
+      bind("save-journal-btn", function () {
+        var t = document.getElementById("journal-input").value.trim();
+        if (!t) return;
+        state.journal.unshift({ text: t, when: new Date().toLocaleString() });
+        document.getElementById("journal-input").value = "";
+        save();
+      });
+
+      bind("reset-btn", function () {
+        if (confirm("Clear plants, books, and notes saved in this browser?")) {
+          localStorage.removeItem(KEY);
+          location.reload();
+        }
+      });
+
+      function render() {
+        var latest = document.getElementById("latest-note-text");
+        if (latest) latest.textContent = state.note;
+        document.querySelectorAll("#genre-boxes input[type=checkbox]").forEach(function (box) {
+          box.checked = (state.genres || ["fantasy"]).indexOf(box.value) !== -1;
+        });
+        var gLabel = document.getElementById("reading-genre-label");
+        if (gLabel) gLabel.textContent = currentGenre();
+        var sGenre = document.getElementById("settings-genre");
+        if (sGenre) sGenre.textContent = currentGenre();
+
+        var plantList = document.getElementById("plant-list");
+        if (plantList) {
+          plantList.innerHTML = state.plants.map(function (p, i) {
+            return '<div class="review-item"><div class="review-icon">🌱</div><div><strong>' +
+              p.name + '</strong><div style="font-size:0.72rem;color:var(--text-dim)">' + p.note +
+              '</div></div><button class="btn-danger" data-del-plant="' + i + '">Remove</button></div>';
+          }).join("") || "<p style='color:var(--text-muted);font-size:0.85rem'>No plants yet.</p>";
+          plantList.querySelectorAll("[data-del-plant]").forEach(function (btn) {
+            btn.onclick = function () {
+              state.plants.splice(+btn.getAttribute("data-del-plant"), 1);
+              save();
+            };
+          });
+        }
+
+        var bookList = document.getElementById("book-list");
+        if (bookList) {
+          bookList.innerHTML = state.books.map(function (b, i) {
+            return '<div class="review-item"><div class="review-icon">📖</div><div><strong>' +
+              b.title + '</strong><div style="font-size:0.72rem;color:var(--text-dim)">' + b.note +
+              '</div></div><button class="btn-danger" data-del-book="' + i + '">Remove</button></div>';
+          }).join("");
+          bookList.querySelectorAll("[data-del-book]").forEach(function (btn) {
+            btn.onclick = function () {
+              state.books.splice(+btn.getAttribute("data-del-book"), 1);
+              save();
+            };
+          });
+        }
+
+        var journalList = document.getElementById("journal-list");
+        if (journalList) {
+          journalList.innerHTML = state.journal.map(function (j) {
+            return '<div class="file-row" style="margin-top:8px"><span>' + j.when +
+              " — " + j.text + "</span></div>";
+          }).join("");
+        }
+      }
+
+      var helpModal = document.getElementById("help-modal");
+      function openHelp() { if (helpModal) helpModal.classList.add("open"); }
+      function closeHelp() { if (helpModal) helpModal.classList.remove("open"); }
+      bind("help-btn", openHelp);
+      bind("help-close", closeHelp);
+      if (helpModal) helpModal.addEventListener("click", function (e) {
+        if (e.target === helpModal) closeHelp();
+      });
+      bind("notify-btn", function () {
+        alert(state.last ? ("Last note ready: " + state.note) : "No companion note yet. Type a plant problem and press Grow companion note.");
+      });
+      bind("mode-btn", function () {
+        state.mode = state.mode === "literary" ? "practical" : "literary";
+        var btn = document.getElementById("mode-btn");
+        if (btn) btn.textContent = state.mode === "literary" ? "Literary mode on" : "Switch Mode";
+        save();
+        alert(state.mode === "literary" ? "Literary mode: longer book notes, softer metaphors." : "Balanced mode: care first, then a short book pick.");
+      });
+      document.querySelectorAll("#findings-tabs .tab").forEach(function (tab) {
+        tab.addEventListener("click", function () {
+          document.querySelectorAll("#findings-tabs .tab").forEach(function (t) { t.classList.remove("active"); });
+          tab.classList.add("active");
+          var kind = tab.getAttribute("data-tab");
+          document.querySelectorAll("#findings-body tr").forEach(function (tr) {
+            var k = tr.getAttribute("data-kind");
+            tr.style.display = (!k || kind === "all" || k === kind) ? "" : "none";
+          });
+        });
+      });
+
+      var nameInput = document.getElementById("user-name");
+      function setName(n) {
+        n = (n || "").trim() || "Reader-Gardener";
+        state.userName = n;
+        if (nameInput) nameInput.value = n;
+        var av = document.getElementById("user-avatar");
+        if (av) {
+          var parts = n.split(/\s+/);
+          av.textContent = ((parts[0][0] || "R") + (parts[1] ? parts[1][0] : (parts[0][1] || "G"))).toUpperCase();
+        }
+      }
+      if (nameInput) {
+        nameInput.addEventListener("change", function () { setName(nameInput.value); save(); });
+        nameInput.addEventListener("blur", function () { setName(nameInput.value); save(); });
+      }
+
+      render();
+      setName(state.userName);
+    })();
+  </script>
+</body>
+</html>
